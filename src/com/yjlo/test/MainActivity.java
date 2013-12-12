@@ -1,9 +1,19 @@
 package com.yjlo.test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListAdapter;
@@ -31,7 +42,6 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
 import com.nostra13.universalimageloader.core.assist.SimpleImageLoadingListener;
-import com.yjlo.test.JSONParser;
 import com.yjlo.test.ExtendedSimpleAdapter;
  
 public class MainActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<JSONArray>{
@@ -173,18 +183,66 @@ public class MainActivity extends FragmentActivity implements LoaderManager.Load
 		
 	}
 
-	private static class JSONParse extends AsyncTaskLoader<JSONArray> {
+	private static class JSONParse extends AsyncTaskLoader<JSONArray> { 
 		public JSONParse(Context context) {
 			super(context);
 		}
 		
 		@Override
 		public JSONArray loadInBackground() {
-            JSONParser jp = new JSONParser();
-            JSONArray json = jp.getJSONFromUrl(url);
+			JSONArray json = getJSONFromUrl(url);
             return json;
 		}
 	} 
  
+	/* Get JSON from URL
+	 * @param String url
+	 * @return JSONArray (the json array get from the given url)
+	 */
+	public static JSONArray getJSONFromUrl(String url) {
+	    InputStream is = null;
+	    JSONArray jArr = null;
+	    String json = "";
+        // HTTP request
+        try {
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpPost httpPost = new HttpPost(url);
+ 
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            HttpEntity httpEntity = httpResponse.getEntity();
+            is = httpEntity.getContent();           
+ 
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+ 
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    is, "iso-8859-1"), 8);
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+            is.close();
+            json = sb.toString();
+        } catch (Exception e) {
+            Log.e("Buffer Error", "Error converting result " + e.toString());
+        }
+ 
+        // parse the string to a JSON array
+        try {
+            jArr = new JSONArray(json);
+        } catch (JSONException e) {
+            Log.e("JSON Parser", "Error parsing data " + e.toString());
+        }
+ 
+        // return JSON array
+        return jArr;
+    }
 }
 
