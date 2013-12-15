@@ -168,6 +168,7 @@ public class MainActivity extends FragmentActivity implements
 						DetailPersonActivity.class);
 				myIntent.putExtras(bdl);
 				startActivity(myIntent);
+				overridePendingTransition(R.anim.in_from_right, R.anim.out_to_left);
 			}
 		});
 	}
