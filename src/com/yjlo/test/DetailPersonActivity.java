@@ -25,6 +25,8 @@ public class DetailPersonActivity extends ActionBarActivity {
 	private String gotDescription;
 	private String gotCountry;
 	private String gotPicUrl;
+	
+	private ImageLoader imageLoader;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +46,7 @@ public class DetailPersonActivity extends ActionBarActivity {
 		description.setText(gotDescription);
 		country.setText(gotCountry);
 
-		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader = ImageLoader.getInstance();
 		imageLoader.init(ImageLoaderConfiguration
 				.createDefault(getBaseContext()));
 		imageLoader.displayImage(gotPicUrl, avatar);
@@ -62,7 +64,7 @@ public class DetailPersonActivity extends ActionBarActivity {
 	@Override
 	public void onBackPressed() {
 	    finish();//go back to the previous Activity
-	        overridePendingTransition(R.anim.in_from_left, R.anim.out_to_right);   
+	    overridePendingTransition(R.anim.in_from_left, R.anim.out_to_right);   
 	}
 	
 	@Override

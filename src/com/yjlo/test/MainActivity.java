@@ -21,7 +21,6 @@ import org.json.JSONObject;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -40,11 +39,8 @@ import android.support.v4.content.Loader;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.app.FragmentActivity;
 
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.ImageSize;
-import com.nostra13.universalimageloader.core.assist.SimpleImageLoadingListener;
 
 public class MainActivity extends FragmentActivity implements
 		LoaderManager.LoaderCallbacks<JSONArray> {
@@ -52,7 +48,7 @@ public class MainActivity extends FragmentActivity implements
 
 	List<HashMap<String, Object>> oslist = new ArrayList<HashMap<String, Object>>();
 
-	// ImageLoader imageLoader=new ImageLoader(getBaseContext());
+	ImageLoader imageLoader;
 
 	// URL to get JSON Array
 	public final static String URL = "http://www.json-generator.com/j/bXtJLtTlQi?indent=4";
@@ -74,6 +70,10 @@ public class MainActivity extends FragmentActivity implements
 
 		setContentView(R.layout.activity_main);
 		oslist = new ArrayList<HashMap<String, Object>>();
+		
+		imageLoader=ImageLoader.getInstance();
+		imageLoader.init(ImageLoaderConfiguration
+				.createDefault(getBaseContext()));
 
 		list = (ListView) findViewById(R.id.list);
 		getSupportLoaderManager().initLoader(1, null, this).forceLoad();
@@ -106,37 +106,33 @@ public class MainActivity extends FragmentActivity implements
 
 		peopleList = json;
 		String[] nameList = new String[peopleList.length()];
-		int[] avatarList = new int[peopleList.length()];
-		;
+		String[] urlList = new String[peopleList.length()];
 
 		try {
 			for (int i = 0; i < peopleList.length(); i++) {
 				JSONObject person = peopleList.getJSONObject(i);
 
-				String first_name = person.getString(FIRSTNAME);
-				String last_name = person.getString(LASTNAME);
+				String firstName = person.getString(FIRSTNAME);
+				String lastName = person.getString(LASTNAME);
 				String description = person.getString(DESCRIPTION);
 				String country = person.getString(COUNTRY);
-				String image_url = person.getString(PICTURE);
+				String imageUrl = person.getString(PICTURE);
 				String id = person.getString(ID);
 
-				nameList[i] = first_name + " " + last_name;
-				avatarList[i] = R.drawable.avatar;
-				int[] image = new int[] { R.drawable.avatar };
+				nameList[i] = firstName + " " + lastName;
+				urlList[i] = imageUrl;
 
 				// store values in a HashMap
 				HashMap<String, Object> hm = new HashMap<String, Object>();
 
-				hm.put("full_name", first_name + " " + last_name);
-				hm.put("first_name", first_name);
-				hm.put("last_name", last_name);
+				hm.put("full_name", firstName + " " + lastName);
+				hm.put("first_name", firstName);
+				hm.put("last_name", lastName);
 				hm.put("description", description);
 				hm.put("country", country);
 				hm.put("id", id);
-				hm.put("image", image[0]); // Integer.toString(image[0])
-				hm.put("avatar", Integer.toString(image[0]));
 
-				hm.put("pic_url", image_url);
+				hm.put("pic_url", imageUrl);
 
 				oslist.add(hm);
 			}
@@ -144,7 +140,7 @@ public class MainActivity extends FragmentActivity implements
 			e.printStackTrace();
 		}
 
-		ListAdapter adapter = new personListAdapter(nameList, avatarList);
+		ListAdapter adapter = new personListAdapter(nameList, urlList);
 		list.setAdapter(adapter);
 
 		list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -265,14 +261,14 @@ public class MainActivity extends FragmentActivity implements
 	 */
 	class personListAdapter extends BaseAdapter {
 		private String[] nameList;
-		private int[] imgeList;
+		private String[] imgeList;
 
 		personListAdapter() {
 			nameList = null;
 			imgeList = null;
 		}
 
-		public personListAdapter(String[] nl, int[] il) {
+		public personListAdapter(String[] nl, String[] il) {
 			nameList = nl;
 			imgeList = il;
 		}
@@ -316,7 +312,11 @@ public class MainActivity extends FragmentActivity implements
 			}
 			// get the views from the ViewHolder and then set the values
 			viewHolder.personName.setText(nameList[position]);
-			viewHolder.personAvatar.setImageResource(imgeList[position]);
+			int randomNum = (int)(Math.random()*10); 
+			//*there are some problems when using the same pic url given by the json file*
+			//*so I use a random number to test this, to let the pic for each person is different*
+			String url = imgeList[position] + String.valueOf(randomNum);
+			imageLoader.displayImage(url, viewHolder.personAvatar);
 
 			return convertView;
 		}
