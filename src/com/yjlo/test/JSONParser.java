@@ -40,7 +40,7 @@ public class JSONParser extends AsyncTaskLoader<JSONArray> {
 	 * 
 	 * @return JSONArray (the json array get from the given url)
 	 */
-	private static JSONArray getJSONFromUrl(String url) {
+	private JSONArray getJSONFromUrl(String url) {
 		InputStream is = null;
 		JSONArray jArr = null;
 		String json = "";
