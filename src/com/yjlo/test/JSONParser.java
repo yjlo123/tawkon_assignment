@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.Vector;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -13,24 +14,37 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 
-public class JSONParser extends AsyncTaskLoader<JSONArray> {
+public class JSONParser extends AsyncTaskLoader<Vector<Contact>> {
 	
 	private String url;
+	// JSON Node Names
+	private static final String FIRSTNAME = "first_name";
+	private static final String LASTNAME = "last_name";
+	private static final String DESCRIPTION = "description";
+	private static final String COUNTRY = "country";
+	private static final String PICTURE = "picture";
+	private static final String ID = "id";
+	
+	private Vector<Contact> contactList;
 	
 	public JSONParser(Context context, String url) {
 		super(context);
 		this.url = url;
+		contactList =  new Vector<Contact>();
 	}
 
 	@Override
-	public JSONArray loadInBackground() {
+	public Vector<Contact> loadInBackground() {
+		Vector<Contact> contactList = null;
 		JSONArray json = getJSONFromUrl(url);
-		return json;
+		contactList = getListFromArray(json);
+		return contactList;
 	}
 
 	/*
@@ -82,5 +96,31 @@ public class JSONParser extends AsyncTaskLoader<JSONArray> {
 			Log.e("JSON Parser", "Error parsing data " + e.toString());
 		}
 		return jArr;
+	}
+	
+	/*
+	 * METHOD: Convert JSON Array into Contact list
+	 * 
+	 * @param JSONArray
+	 * 
+	 * @return Vector<Contact>
+	 */
+	private Vector<Contact> getListFromArray (JSONArray json){
+		try {
+			for (int i = 0; i < json.length(); i++) {
+				JSONObject person = json.getJSONObject(i);
+				String firstName = person.getString(FIRSTNAME);
+				String lastName = person.getString(LASTNAME);
+				String description = person.getString(DESCRIPTION);
+				String country = person.getString(COUNTRY);
+				String imageUrl = person.getString(PICTURE);
+				int id = Integer.parseInt(person.getString(ID));
+				contactList.add(new Contact(firstName, lastName, country,
+						description, imageUrl, id));
+			}
+		} catch (JSONException e) {
+		    e.printStackTrace();
+		}
+		return contactList;
 	}
 }
